@@ -1,29 +1,31 @@
-// src/main.ts
 import { Logger, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
+import { HttpLoggerInterceptor } from './common/logger/http-logger.interceptor'
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, {})
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug'],
+  })
 
-  // Валидация DTO + авто-трансформация типов (string -> number и т.д.)
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // отбрасывает неизвестные поля
-      forbidNonWhitelisted: true, // 400, если пришли лишние поля
-      transform: true, // включает class-transformer
-      transformOptions: {
-        enableImplicitConversion: true, // позволяет преобразование типов без @Type()
-      },
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
     })
   )
 
-  const portEnv = process.env.PORT
-  const port = portEnv ? Number(portEnv) : 3000
+  // глобальный HTTP-логгер (интерцептор должен быть в providers AppModule)
+  app.useGlobalInterceptors(app.get(HttpLoggerInterceptor))
 
+  // корректное завершение (нужно для PrismaService.onModuleDestroy)
+  app.enableShutdownHooks()
+
+  const port = Number(process.env.PORT) || 3000
   await app.listen(port)
   const url = await app.getUrl()
   Logger.log(`🚀 Server is running on ${url}`, 'Bootstrap')
 }
-
 bootstrap()

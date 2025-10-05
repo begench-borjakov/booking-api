@@ -1,19 +1,30 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common'
 import { BookingsService } from './bookings.service'
 import { ReserveBookingDto } from './dto/reserve-booking.dto'
 import { toBookingResponse } from './mappers/booking.mapper'
 import type { BookingResponse } from './rto/booking.response'
+import { JwtAuthGuard } from '../third-party/jwt/jwt-auth.guard'
+import { CurrentUserId } from '../third-party/decorator/current-user.decorator'
 
 @Controller('api/bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Post('reserve')
-  async reserve(@Body() dto: ReserveBookingDto): Promise<BookingResponse> {
+  async reservePublic(@Body() dto: ReserveBookingDto) {
     const b = await this.bookingsService.reserve(dto.event_id, dto.user_id)
     return toBookingResponse(b)
   }
-
   @Get(':id')
   async getById(@Param('id', ParseIntPipe) id: number): Promise<BookingResponse> {
     const b = await this.bookingsService.getById(id)
@@ -35,9 +46,13 @@ export class BookingsController {
     return { items: items.map(toBookingResponse), total, page, limit }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async cancel(@Param('id', ParseIntPipe) id: number): Promise<{ status: 'ok' }> {
-    await this.bookingsService.cancel(id)
+  async cancel(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUserId() userId: string
+  ): Promise<{ status: 'ok' }> {
+    await this.bookingsService.cancel(id, userId) // сервис проверит b.userId === userId
     return { status: 'ok' }
   }
 }

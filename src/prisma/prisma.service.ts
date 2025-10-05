@@ -3,13 +3,17 @@ import { PrismaClient } from '@prisma/client'
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  async onModuleInit() {
-    // Подключаемся к БД при старте приложения
+  constructor() {
+    super({
+      log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+    })
+  }
+
+  async onModuleInit(): Promise<void> {
     await this.$connect()
   }
 
-  async onModuleDestroy() {
-    // Корректно закрываем соединение при остановке
+  async onModuleDestroy(): Promise<void> {
     await this.$disconnect()
   }
 }

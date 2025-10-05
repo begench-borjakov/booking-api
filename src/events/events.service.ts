@@ -1,21 +1,33 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaUnitOfWork } from '../database/uow/prisma-unit-of-work'
-import { EventEntity } from '../database/events/event.entity'
+import type { EventEntity } from '../database/events/event.entity'
+import { AppLogger } from '../common/logger/app-logger.service'
 
 @Injectable()
 export class EventsService {
-  constructor(private readonly uow: PrismaUnitOfWork) {}
+  constructor(
+    private readonly uow: PrismaUnitOfWork,
+    private readonly logger: AppLogger
+  ) {
+    this.logger.setContext?.(EventsService.name)
+  }
 
   async create(name: string, total_seats: number): Promise<EventEntity> {
-    return this.uow.withTransaction(async ({ events }) => {
-      return events.create(name, total_seats)
-    })
+    this.logger.debug(`create: try name="${name}" seats=${total_seats}`)
+    const e = await this.uow.withTransaction(({ events }) => events.create(name, total_seats))
+    this.logger.log(`create: ok event=${e.id}`)
+    return e
   }
 
   async getById(id: number): Promise<EventEntity> {
+    this.logger.debug(`getById: ${id}`)
     const { events } = this.uow.repos()
     const e = await events.findById(id)
-    if (!e) throw new NotFoundException('Event not found')
+    if (!e) {
+      this.logger.warn(`getById: not found event=${id}`)
+      throw new NotFoundException('Event not found')
+    }
+    this.logger.debug(`getById: ok event=${id}`)
     return e
   }
 
@@ -28,31 +40,43 @@ export class EventsService {
     const limit = params.limit && params.limit > 0 && params.limit <= 100 ? params.limit : 20
     const skip = (page - 1) * limit
 
+    this.logger.debug(`list: search=${params.search ?? '-'} page=${page} limit=${limit}`)
+
     const { events } = this.uow.repos()
     const { items, total } = await events.findMany({
       search: params.search,
       skip,
       take: limit,
     })
+
+    this.logger.debug(`list: ok total=${total}`)
     return { items, total, page, limit }
   }
 
   async update(id: number, patch: { name?: string; total_seats?: number }): Promise<EventEntity> {
+    this.logger.debug(`update: try event=${id}`)
     return this.uow.withTransaction(async ({ events }) => {
       const existing = await events.findById(id)
-      if (!existing) throw new NotFoundException('Event not found')
-      return events.update(id, {
-        name: patch.name,
-        totalSeats: patch.total_seats,
-      })
+      if (!existing) {
+        this.logger.warn(`update: not found event=${id}`)
+        throw new NotFoundException('Event not found')
+      }
+      const e = await events.update(id, { name: patch.name, totalSeats: patch.total_seats })
+      this.logger.log(`update: ok event=${id}`)
+      return e
     })
   }
 
   async delete(id: number): Promise<void> {
+    this.logger.debug(`delete: try event=${id}`)
     return this.uow.withTransaction(async ({ events }) => {
       const existing = await events.findById(id)
-      if (!existing) throw new NotFoundException('Event not found')
+      if (!existing) {
+        this.logger.warn(`delete: not found event=${id}`)
+        throw new NotFoundException('Event not found')
+      }
       await events.delete(id)
+      this.logger.log(`delete: ok event=${id}`)
     })
   }
 }

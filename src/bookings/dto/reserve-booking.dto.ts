@@ -1,13 +1,13 @@
-import { IsInt, IsNotEmpty, IsUUID, Min } from 'class-validator'
-import { Type } from 'class-transformer'
+import { Type, Transform } from 'class-transformer'
+import { IsInt, IsPositive, IsUUID } from 'class-validator'
 
 export class ReserveBookingDto {
   @Type(() => Number)
   @IsInt()
-  @Min(1)
+  @IsPositive()
   event_id!: number
 
-  @IsUUID('4')
-  @IsNotEmpty()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsUUID('4', { message: 'user_id must be a valid UUID v4' })
   user_id!: string
 }
