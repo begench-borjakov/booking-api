@@ -1,16 +1,19 @@
 import { Transform, Type } from 'class-transformer'
+import { ApiProperty } from '@nestjs/swagger'
 import { IsInt, IsPositive, IsString, MinLength, MaxLength, Max } from 'class-validator'
 
 export class CreateEventDto {
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @ApiProperty({ example: 'NodeConf 2025', minLength: 2, maxLength: 200 })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : value))
   @IsString()
   @MinLength(2)
-  @MaxLength(200) // например
+  @MaxLength(200)
   name!: string
 
-  @Type(() => Number) // если не используешь enableImplicitConversion
+  @ApiProperty({ example: 250, minimum: 1, maximum: 100000 })
+  @Type(() => Number)
   @IsInt()
   @IsPositive()
-  @Max(100000) // опционально, разумный верхний предел
+  @Max(100000)
   total_seats!: number
 }
