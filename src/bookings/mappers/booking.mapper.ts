@@ -1,4 +1,4 @@
-import type { BookingEntity } from '../../database/entities/booking.entity'
+import type { BookingEntity } from '../../database/bookings/booking.entity'
 import { BookingResponse } from '../rto/booking.response'
 
 export const toBookingResponse = (b: BookingEntity): BookingResponse => ({

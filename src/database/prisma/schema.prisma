@@ -13,25 +13,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Event {
-  id         Int       @id @default(autoincrement())
-  name       String
-  totalSeats Int       @map("total_seats")
+model User {
+  id         String    @id @default(uuid())
+  email      String    @unique
+  password   String
+  name       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
   bookings   Booking[]
+}
 
-  @@map("events")
+model Event {
+  id          Int       @id @default(autoincrement())
+  name        String
+  total_seats Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  bookings    Booking[]
 }
 
 model Booking {
-  id        Int      @id @default(autoincrement())
-  eventId   Int      @map("event_id")
-  userId    String   @map("user_id")
-  createdAt DateTime @default(now()) @map("created_at")
+  id         Int      @id @default(autoincrement())
+  eventId    Int      @map("event_id")
+  userId     String   @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at")
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId],  references: [id], onDelete: Cascade)
 
-  // запретить двойное бронирование одного user на одно event
-  @@unique([eventId, userId])
-  @@index([eventId]) // ускорит count по eventId
+  @@index([eventId])
+  @@index([userId])
+  @@unique([eventId, userId], name: "bookings_event_id_user_id_key")
   @@map("bookings")
 }

@@ -1,0 +1,43 @@
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query } from '@nestjs/common'
+import { BookingsService } from './bookings.service'
+import { ReserveBookingDto } from './dto/reserve-booking.dto'
+import { toBookingResponse } from './mappers/booking.mapper'
+import type { BookingResponse } from './rto/booking.response'
+
+@Controller('api/bookings')
+export class BookingsController {
+  constructor(private readonly bookingsService: BookingsService) {}
+
+  @Post('reserve')
+  async reserve(@Body() dto: ReserveBookingDto): Promise<BookingResponse> {
+    const b = await this.bookingsService.reserve(dto.event_id, dto.user_id)
+    return toBookingResponse(b)
+  }
+
+  @Get(':id')
+  async getById(@Param('id', ParseIntPipe) id: number): Promise<BookingResponse> {
+    const b = await this.bookingsService.getById(id)
+    return toBookingResponse(b)
+  }
+
+  @Get()
+  async list(
+    @Query('event_id') eventIdQ?: string,
+    @Query('user_id') userId?: string,
+    @Query('page') pageQ?: string,
+    @Query('limit') limitQ?: string
+  ): Promise<{ items: BookingResponse[]; total: number; page: number; limit: number }> {
+    const eventId = eventIdQ ? Number(eventIdQ) : undefined
+    const page = pageQ ? Number(pageQ) : 1
+    const limit = limitQ ? Number(limitQ) : 20
+
+    const { items, total } = await this.bookingsService.list({ eventId, userId, page, limit })
+    return { items: items.map(toBookingResponse), total, page, limit }
+  }
+
+  @Delete(':id')
+  async cancel(@Param('id', ParseIntPipe) id: number): Promise<{ status: 'ok' }> {
+    await this.bookingsService.cancel(id)
+    return { status: 'ok' }
+  }
+}
