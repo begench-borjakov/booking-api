@@ -26,7 +26,7 @@ import { JwtAuthGuard } from '../third-party/jwt/jwt-auth.guard'
 import { CurrentUserId } from '../third-party/decorator/current-user.decorator'
 
 @ApiTags('Bookings')
-@Controller('api/bookings')
+@Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 

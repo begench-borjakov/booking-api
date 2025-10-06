@@ -26,7 +26,7 @@ import { toEventResponse } from './mappers/event.mapper'
 import { EventResponse } from './rto/event.response'
 
 @ApiTags('Events')
-@Controller('api/events')
+@Controller('events')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
@@ -35,8 +35,8 @@ export class EventsController {
   @ApiResponse({ status: 201, type: EventResponse })
   @Post()
   async create(@Body() dto: CreateEventDto): Promise<EventResponse> {
-    const e = await this.eventsService.create(dto.name, dto.total_seats)
-    return toEventResponse(e)
+    const event = await this.eventsService.create(dto.name, dto.total_seats)
+    return toEventResponse(event)
   }
 
   @ApiOperation({ summary: 'Get event by id' })
@@ -44,8 +44,8 @@ export class EventsController {
   @ApiResponse({ status: 200, type: EventResponse })
   @Get(':id')
   async getById(@Param('id', ParseIntPipe) id: number): Promise<EventResponse> {
-    const e = await this.eventsService.getById(id)
-    return toEventResponse(e)
+    const event = await this.eventsService.getById(id)
+    return toEventResponse(event)
   }
 
   @ApiOperation({ summary: 'List events' })

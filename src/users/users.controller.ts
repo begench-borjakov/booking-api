@@ -29,7 +29,7 @@ import { JwtAuthGuard } from '../third-party/jwt/jwt-auth.guard'
 import { OwnerGuard } from '../third-party/guards/owner.guard'
 
 @ApiTags('Users')
-@Controller('api/users')
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -44,16 +44,19 @@ export class UsersController {
     return toUserResponse(u)
   }
 
-  @ApiOperation({ summary: 'Get user by id' })
+  @ApiOperation({ summary: 'Get user by id (protected)' })
+  @ApiBearerAuth()
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiResponse({ status: 200, type: UserResponse })
+  @UseGuards(JwtAuthGuard, OwnerGuard)
   @Get(':id')
   async getById(@Param('id', new ParseUUIDPipe()) id: string): Promise<UserResponse> {
     const u = await this.usersService.getById(id)
     return toUserResponse(u)
   }
 
-  @ApiOperation({ summary: 'List users' })
+  @ApiOperation({ summary: 'List users (protected)' })
+  @ApiBearerAuth()
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
@@ -69,6 +72,7 @@ export class UsersController {
       },
     },
   })
+  @UseGuards(JwtAuthGuard)
   @Get()
   async list(
     @Query('search') search?: string,
@@ -76,8 +80,11 @@ export class UsersController {
     @Query('limit') limitQ?: string
   ): Promise<{ items: UserResponse[]; total: number; page: number; limit: number }> {
     const p = Number(pageQ)
+
     const l = Number(limitQ)
+
     const page = Number.isFinite(p) && p > 0 ? p : 1
+
     const limit = Number.isFinite(l) && l > 0 ? Math.min(l, 100) : 20
 
     const { items, total } = await this.usersService.list({ search, page, limit })

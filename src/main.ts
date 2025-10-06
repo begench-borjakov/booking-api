@@ -18,6 +18,8 @@ async function bootstrap(): Promise<void> {
     })
   )
 
+  app.setGlobalPrefix('api')
+
   app.useGlobalInterceptors(app.get(HttpLoggerInterceptor))
 
   app.enableShutdownHooks()
