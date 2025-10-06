@@ -7,9 +7,7 @@ import { PrismaUnitOfWork } from '../database/uow/prisma-unit-of-work'
 import { AppLogger } from '../common/logger/app-logger.service'
 
 @Module({
-  imports: [
-    ThirdPartyJwtModule, // даёт JwtService и регистрирует JwtStrategy
-  ],
+  imports: [ThirdPartyJwtModule],
   controllers: [AuthController],
   providers: [AuthService, PrismaService, PrismaUnitOfWork, AppLogger],
   exports: [AuthService],

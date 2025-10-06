@@ -6,7 +6,6 @@ export interface UserEntity {
   updatedAt: Date
 }
 
-/** Для auth-потоков: когда нужен доступ к хешу пароля */
 export interface UserWithPassword extends UserEntity {
   passwordHash: string
 }

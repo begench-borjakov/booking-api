@@ -13,7 +13,7 @@ export class UpdateEventDto {
 
   @ApiPropertyOptional({ example: 300, minimum: 1 })
   @IsOptional()
-  @Type(() => Number) // можно опустить при enableImplicitConversion
+  @Type(() => Number)
   @IsInt()
   @IsPositive()
   total_seats?: number

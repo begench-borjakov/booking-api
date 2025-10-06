@@ -18,7 +18,6 @@ export class BookingsService {
     this.logger.setContext?.(BookingsService.name)
   }
 
-  /** Ключевой use-case: бронь места */
   async reserve(eventId: number, userId: string): Promise<BookingEntity> {
     this.logger.debug(`reserve: try event=${eventId} user=${userId}`)
 
@@ -49,26 +48,24 @@ export class BookingsService {
         throw new ConflictException('User already booked this event')
       }
 
-      const b = await bookings.create(eventId, userId)
-      this.logger.log(`reserve: ok booking=${b.id} event=${eventId} user=${userId}`)
-      return b
+      const booking = await bookings.create(eventId, userId)
+      this.logger.log(`reserve: ok booking=${booking.id} event=${eventId} user=${userId}`)
+      return booking
     })
   }
 
-  /** Получить бронь по id */
   async getById(id: number): Promise<BookingEntity> {
     this.logger.debug(`getById: try booking=${id}`)
     const { bookings } = this.uow.repos()
-    const b = await bookings.findById(id)
-    if (!b) {
+    const booking = await bookings.findById(id)
+    if (!booking) {
       this.logger.warn(`getById: not found booking=${id}`)
       throw new NotFoundException('Booking not found')
     }
     this.logger.debug(`getById: ok booking=${id}`)
-    return b
+    return booking
   }
 
-  /** Список броней с фильтрами и пагинацией */
   async list(params: {
     eventId?: number
     userId?: string
@@ -95,18 +92,19 @@ export class BookingsService {
     return { items, total, page, limit }
   }
 
-  /** Отмена брони */
   async cancel(bookingId: number, userId: string): Promise<void> {
     this.logger.debug(`cancel: try booking=${bookingId} by=${userId}`)
 
     return this.uow.withTransaction(async ({ bookings }) => {
-      const b = await bookings.findById(bookingId)
-      if (!b) {
+      const booking = await bookings.findById(bookingId)
+      if (!booking) {
         this.logger.warn(`cancel: not found booking=${bookingId}`)
         throw new NotFoundException('Booking not found')
       }
-      if (b.userId !== userId) {
-        this.logger.warn(`cancel: forbidden booking=${bookingId} owner=${b.userId} by=${userId}`)
+      if (booking.userId !== userId) {
+        this.logger.warn(
+          `cancel: forbidden booking=${bookingId} owner=${booking.userId} by=${userId}`
+        )
         throw new ForbiddenException('You can cancel only your own booking')
       }
 

@@ -17,7 +17,5 @@ export class UpdateUserDto {
   @MinLength(8)
   @MaxLength(128)
   @Matches(/^\S+$/, { message: 'password must not contain spaces' })
-  // при необходимости включи минимальную сложность:
-  // @Matches(/^(?=.*[A-Za-z])(?=.*\d).+$/, { message: 'password must contain letters and numbers' })
   password?: string
 }

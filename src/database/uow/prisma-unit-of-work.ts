@@ -13,7 +13,6 @@ export interface UnitOfWorkContext {
 
 @Injectable()
 export class PrismaUnitOfWork {
-  // Важно: PrismaService должен наследоваться от PrismaClient
   constructor(private readonly prisma: PrismaService) {}
 
   async withTransaction<T>(fn: (ctx: UnitOfWorkContext) => Promise<T>): Promise<T> {
@@ -27,12 +26,10 @@ export class PrismaUnitOfWork {
     })
   }
 
-  // Alias, чтобы можно было писать uow.run(...)
   run<T>(fn: (ctx: UnitOfWorkContext) => Promise<T>): Promise<T> {
     return this.withTransaction(fn)
   }
 
-  // Для простых чтений без транзакции
   repos(): UnitOfWorkContext {
     return {
       events: new PrismaEventsRepository(this.prisma),

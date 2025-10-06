@@ -41,40 +41,39 @@ export class PrismaUsersRepository {
   }
 
   async existsById(id: string): Promise<boolean> {
-    const u = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id },
       select: { id: true },
     })
-    return !!u
+    return !!user
   }
 
   async create(data: { email: string; name?: string; passwordHash: string }): Promise<UserEntity> {
-    const u = await this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: { email: data.email, name: data.name, password: data.passwordHash },
       select: { id: true, email: true, name: true, createdAt: true, updatedAt: true },
     })
-    return this.toEntity(u)
+    return this.toEntity(user)
   }
 
   async findById(id: string): Promise<UserEntity | null> {
-    const u = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id },
       select: { id: true, email: true, name: true, createdAt: true, updatedAt: true },
     })
-    return u ? this.toEntity(u) : null
+    return user ? this.toEntity(user) : null
   }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
-    const u = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { email },
       select: { id: true, email: true, name: true, createdAt: true, updatedAt: true },
     })
-    return u ? this.toEntity(u) : null
+    return user ? this.toEntity(user) : null
   }
 
-  /** Специально для логина/проверки пароля */
   async findAuthByEmail(email: string): Promise<UserWithPassword | null> {
-    const u = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { email },
       select: {
         id: true,
@@ -85,7 +84,7 @@ export class PrismaUsersRepository {
         updatedAt: true,
       },
     })
-    return u ? this.toEntityWithPassword(u) : null
+    return user ? this.toEntityWithPassword(user) : null
   }
 
   async update(id: string, patch: { name?: string; passwordHash?: string }): Promise<UserEntity> {
@@ -93,12 +92,12 @@ export class PrismaUsersRepository {
       ...(patch.name !== undefined ? { name: patch.name } : {}),
       ...(patch.passwordHash !== undefined ? { password: patch.passwordHash } : {}),
     }
-    const u = await this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id },
       data,
       select: { id: true, email: true, name: true, createdAt: true, updatedAt: true },
     })
-    return this.toEntity(u)
+    return this.toEntity(user)
   }
 
   async delete(id: string): Promise<void> {

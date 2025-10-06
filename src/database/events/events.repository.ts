@@ -16,26 +16,26 @@ export class PrismaEventsRepository {
     return {
       id: row.id,
       name: row.name,
-      totalSeats: row.total_seats, // snake -> camel
+      totalSeats: row.total_seats,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     }
   }
 
   async create(name: string, totalSeats: number): Promise<EventEntity> {
-    const e = await this.prisma.event.create({
+    const event = await this.prisma.event.create({
       data: { name, total_seats: totalSeats },
       select: { id: true, name: true, total_seats: true, createdAt: true, updatedAt: true },
     })
-    return this.toEntity(e)
+    return this.toEntity(event)
   }
 
   async findById(id: number): Promise<EventEntity | null> {
-    const e = await this.prisma.event.findUnique({
+    const event = await this.prisma.event.findUnique({
       where: { id },
       select: { id: true, name: true, total_seats: true, createdAt: true, updatedAt: true },
     })
-    return e ? this.toEntity(e) : null
+    return event ? this.toEntity(event) : null
   }
 
   async update(id: number, patch: { name?: string; totalSeats?: number }): Promise<EventEntity> {
@@ -43,12 +43,12 @@ export class PrismaEventsRepository {
       ...(patch.name !== undefined ? { name: patch.name } : {}),
       ...(patch.totalSeats !== undefined ? { total_seats: patch.totalSeats } : {}),
     }
-    const e = await this.prisma.event.update({
+    const event = await this.prisma.event.update({
       where: { id },
       data,
       select: { id: true, name: true, total_seats: true, createdAt: true, updatedAt: true },
     })
-    return this.toEntity(e)
+    return this.toEntity(event)
   }
 
   async delete(id: number): Promise<void> {
@@ -80,10 +80,10 @@ export class PrismaEventsRepository {
   }
 
   async getTotalSeats(id: number): Promise<number | null> {
-    const e = await this.prisma.event.findUnique({
+    const event = await this.prisma.event.findUnique({
       where: { id },
       select: { total_seats: true },
     })
-    return e ? e.total_seats : null
+    return event ? event.total_seats : null
   }
 }

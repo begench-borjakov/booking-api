@@ -11,5 +11,5 @@ export class BookingResponse {
   user_id!: string
 
   @ApiProperty({ example: '2025-10-05T20:31:00.000Z', format: 'date-time' })
-  created_at!: string // ISO
+  created_at!: string
 }

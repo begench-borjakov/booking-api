@@ -12,6 +12,4 @@ export const toMeResponse = (
   id: u.id,
   email: u.email,
   name: u.name,
-  created_at: u.createdAt ? u.createdAt.toISOString() : undefined,
-  updated_at: u.updatedAt ? u.updatedAt.toISOString() : undefined,
 })

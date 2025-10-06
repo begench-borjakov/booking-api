@@ -14,21 +14,21 @@ export class EventsService {
 
   async create(name: string, total_seats: number): Promise<EventEntity> {
     this.logger.debug(`create: try name="${name}" seats=${total_seats}`)
-    const e = await this.uow.withTransaction(({ events }) => events.create(name, total_seats))
-    this.logger.log(`create: ok event=${e.id}`)
-    return e
+    const event = await this.uow.withTransaction(({ events }) => events.create(name, total_seats))
+    this.logger.log(`create: ok event=${event.id}`)
+    return event
   }
 
   async getById(id: number): Promise<EventEntity> {
     this.logger.debug(`getById: ${id}`)
     const { events } = this.uow.repos()
-    const e = await events.findById(id)
-    if (!e) {
+    const event = await events.findById(id)
+    if (!event) {
       this.logger.warn(`getById: not found event=${id}`)
       throw new NotFoundException('Event not found')
     }
     this.logger.debug(`getById: ok event=${id}`)
-    return e
+    return event
   }
 
   async list(params: {
@@ -61,9 +61,9 @@ export class EventsService {
         this.logger.warn(`update: not found event=${id}`)
         throw new NotFoundException('Event not found')
       }
-      const e = await events.update(id, { name: patch.name, totalSeats: patch.total_seats })
+      const event = await events.update(id, { name: patch.name, totalSeats: patch.total_seats })
       this.logger.log(`update: ok event=${id}`)
-      return e
+      return event
     })
   }
 

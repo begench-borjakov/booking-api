@@ -71,7 +71,6 @@ export class BookingsController {
     @Query('page') pageQ?: string,
     @Query('limit') limitQ?: string
   ): Promise<{ items: BookingResponse[]; total: number; page: number; limit: number }> {
-    // безопасный парсинг + дефолты/потолок
     const eventId = eventIdQ ? Number(eventIdQ) : undefined
     const pageNum = Number(pageQ)
     const limitNum = Number(limitQ)

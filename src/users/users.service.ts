@@ -15,7 +15,6 @@ export class UsersService {
 
   async create(email: string, password: string, name?: string): Promise<UserEntity> {
     this.logger.debug(`create: try email=${email}`)
-    // быстрый UX-precheck; при гонке всё равно защитит уникальный индекс
     const exists = await this.uow.repos().users.findByEmail(email)
     if (exists) {
       this.logger.warn(`create: duplicate email=${email}`)
@@ -23,22 +22,22 @@ export class UsersService {
     }
 
     const passwordHash = await hashPassword(password)
-    const u = await this.uow.withTransaction(({ users }) =>
+    const user = await this.uow.withTransaction(({ users }) =>
       users.create({ email, name, passwordHash })
     )
-    this.logger.log(`create: ok user=${u.id}`)
-    return u
+    this.logger.log(`create: ok user=${user.id}`)
+    return user
   }
 
   async getById(id: string): Promise<UserEntity> {
     this.logger.debug(`getById: ${id}`)
-    const u = await this.uow.repos().users.findById(id)
-    if (!u) {
+    const user = await this.uow.repos().users.findById(id)
+    if (!user) {
       this.logger.warn(`getById: not found user=${id}`)
       throw new NotFoundException('User not found')
     }
     this.logger.debug(`getById: ok user=${id}`)
-    return u
+    return user
   }
 
   async list(params: {
@@ -72,13 +71,13 @@ export class UsersService {
     const passwordHash =
       patch.password !== undefined ? await hashPassword(patch.password) : undefined
 
-    const u = await this.uow.withTransaction(({ users }) =>
+    const user = await this.uow.withTransaction(({ users }) =>
       users.update(id, { name: patch.name, passwordHash })
     )
     this.logger.log(
       `update: ok user=${id} nameChanged=${patch.name !== undefined} passwordChanged=${patch.password !== undefined}`
     )
-    return u
+    return user
   }
 
   async delete(id: string): Promise<void> {

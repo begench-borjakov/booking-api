@@ -22,7 +22,6 @@ export class AuthService {
     return this.jwt.signAsync(payload)
   }
 
-  /** Саморегистрация + мгновенная выдача JWT */
   async register(
     email: string,
     password: string,
@@ -31,7 +30,6 @@ export class AuthService {
     this.logger.debug(`register: try email=${email}`)
     const { users } = this.uow.repos()
 
-    // Предварительная проверка (быстро даёт 409 для UX),
     const exists = await users.findByEmail(email)
     if (exists) {
       this.logger.warn(`register: email already used email=${email}`)
@@ -47,7 +45,6 @@ export class AuthService {
       this.logger.log(`register: ok user=${user.id}`)
       return { access_token: await this.signFor(user) }
     } catch (err) {
-      // если репозиторий пробросит 409 по уникальности — выше перехватит глоабльный фильтр
       this.logger.error(
         `register: failed email=${email}`,
         err instanceof Error ? err.stack : undefined
@@ -56,12 +53,11 @@ export class AuthService {
     }
   }
 
-  /** Логин по email/password → JWT */
   async login(email: string, password: string): Promise<{ access_token: string }> {
     this.logger.debug(`login: try email=${email}`)
     const { users } = this.uow.repos()
 
-    const auth = await users.findAuthByEmail(email) // { id, email, passwordHash }
+    const auth = await users.findAuthByEmail(email)
     if (!auth) {
       this.logger.warn(`login: user not found email=${email}`)
       throw new UnauthorizedException('Invalid credentials')
@@ -77,19 +73,17 @@ export class AuthService {
     return { access_token: await this.signFor(auth) }
   }
 
-  /** Текущий пользователь (по id из токена) */
   async me(userId: string): Promise<UserEntity | { id: string; email: string; name?: string }> {
     this.logger.debug(`me: fetch user=${userId}`)
     const { users } = this.uow.repos()
 
-    const u = await users.findById(userId)
-    if (!u) {
+    const user = await users.findById(userId)
+    if (!user) {
       this.logger.warn(`me: user not found user=${userId}`)
-      // пользователь мог быть удалён, но токен ещё жив — вернём минимальные данные
       return { id: userId, email: '' }
     }
 
     this.logger.debug(`me: ok user=${userId}`)
-    return u
+    return user
   }
 }

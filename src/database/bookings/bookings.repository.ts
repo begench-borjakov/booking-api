@@ -25,27 +25,34 @@ export class PrismaBookingsRepository {
   }
 
   async create(eventId: number, userId: string): Promise<BookingEntity> {
-    const b = await this.prisma.booking.create({
+    const booking = await this.prisma.booking.create({
       data: { eventId, userId },
       select: { id: true, eventId: true, userId: true, createdAt: true },
     })
-    return this.toEntity(b)
+    return this.toEntity(booking)
   }
 
   async findByEventAndUser(eventId: number, userId: string): Promise<BookingEntity | null> {
-    const b = await this.prisma.booking.findFirst({
+    const booking = await this.prisma.booking.findFirst({
       where: { eventId, userId },
       select: { id: true, eventId: true, userId: true, createdAt: true },
     })
-    return b ? { id: b.id, eventId: b.eventId, userId: b.userId, createdAt: b.createdAt } : null
+    return booking
+      ? {
+          id: booking.id,
+          eventId: booking.eventId,
+          userId: booking.userId,
+          createdAt: booking.createdAt,
+        }
+      : null
   }
 
   async findById(id: number): Promise<BookingEntity | null> {
-    const b = await this.prisma.booking.findUnique({
+    const booking = await this.prisma.booking.findUnique({
       where: { id },
       select: { id: true, eventId: true, userId: true, createdAt: true },
     })
-    return b ? this.toEntity(b) : null
+    return booking ? this.toEntity(booking) : null
   }
 
   async findMany(params: {
@@ -59,7 +66,6 @@ export class PrismaBookingsRepository {
       ...(params.userId !== undefined ? { userId: params.userId } : {}),
     }
 
-    // Никаких вложенных транзакций внутри репозитория!
     const [rows, total] = await Promise.all([
       this.prisma.booking.findMany({
         where,

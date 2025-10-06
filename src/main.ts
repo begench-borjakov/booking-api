@@ -18,17 +18,15 @@ async function bootstrap(): Promise<void> {
     })
   )
 
-  // глобальный HTTP-логгер (интерцептор должен быть в providers AppModule)
   app.useGlobalInterceptors(app.get(HttpLoggerInterceptor))
 
-  // корректное завершение (нужно для PrismaService.onModuleDestroy)
   app.enableShutdownHooks()
 
   const config = new DocumentBuilder()
     .setTitle('Booking API')
     .setDescription('Система бронирования мест')
     .setVersion('1.0.0')
-    .addBearerAuth() // JWT в Authorization: Bearer <token>
+    .addBearerAuth()
     .build()
 
   const document = SwaggerModule.createDocument(app, config)
